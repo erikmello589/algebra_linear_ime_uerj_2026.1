@@ -3,7 +3,7 @@
 #include <locale.h>
 
 //declaração de constante
-#define ORDEM 15
+#define ORDEM 5
 #define FALSE -1
 #define TRUE 1
 
@@ -16,41 +16,34 @@
 
 //protótipo das funções (para que a main fique por cima)
 void exibirVetor (int vetor[], int tamanhoVetor);
-void criar_matriz_solucao (int matriz_solucao[ORDEM][1]);
-void criar_matriz_hilbert (int matriz[ORDEM][ORDEM]);
-
-
-void exibirMatriz (int matriz[ORDEM][1]);
+void exibirMatriz (float matriz[ORDEM][1]);
 
 void somaVetores(int vetor1[], int vetor2[], int ORDEMVetores); // vai retornar um vetor3 
 void multVEscalar(int vetor1[], float escalar, int ORDEMVetor); // vai retornar um vetor3
 void multVetor(int vetor1[], int vetor2[], int ORDEMVetores); // vai retornar um int
-
 void somaMatrizes(int matriz1[ORDEM][ORDEM], int matriz2[ORDEM][ORDEM], int ORDEMMatrizes); // vai retornar uma matriz3
 void multMEscalar(int matriz1[ORDEM][ORDEM], float escalar, int ORDEMMatriz); // vai retornar uma matriz3
-void multMatriz(int matriz1[ORDEM][ORDEM], float escalar, int ORDEMMatriz); // vai retornar uma matriz3
 
-void eliminacao (int ordem, int matriz_hilbert[ORDEM][ORDEM], int matriz_solucao[ORDEM][1]);
-void substituicao_retroativa (int ordem, int matriz_hilbert[ORDEM][ORDEM], int matriz_solucao[ORDEM][1], int matriz_variavel[ORDEM][1]);
+
+void multMatriz(float matriz1[ORDEM][ORDEM], float matriz2[ORDEM][1], float matriz3[ORDEM][1]); // vai retornar uma matriz3
+
+void criar_matriz_solucao (float matriz_solucao[ORDEM][1]);
+void criar_matriz_hilbert (float matriz[ORDEM][ORDEM]);
+void eliminacao (int ordem, float matriz_hilbert[ORDEM][ORDEM], float matriz_solucao[ORDEM][1]);
+void substituicao_retroativa (int ordem, float matriz_hilbert[ORDEM][ORDEM], float matriz_solucao[ORDEM][1], float matriz_variavel[ORDEM][1]);
 
 void main()
 {
 	setlocale(LC_ALL,"portuguese");
 	
-	int i, j, soma;
-	int matriz_hilbert[ORDEM][ORDEM];
-	int matriz_solucao[ORDEM][1];
-	int matriz_variavel[ORDEM][1];
+	float matriz_hilbert[ORDEM][ORDEM];
+	float matriz_solucao[ORDEM][1];
+	float matriz_variavel[ORDEM][1];
+	
+	float solucao_encontrada[ORDEM][1];
 	
 	//criando matriz hilbert
-	for (i=0;i<ORDEM;i++)
-	{
-		for (j=0;j<ORDEM;j++)
-		{
-			soma = (i + 1) + (j + 1) - 1;
-			matriz_hilbert[i][j] = 1 / soma;
-		}		
-	}
+	criar_matriz_hilbert(matriz_hilbert);
 	
 	//criando matriz solucao
 	criar_matriz_solucao(matriz_solucao);
@@ -60,6 +53,11 @@ void main()
 	substituicao_retroativa(ORDEM, matriz_hilbert, matriz_solucao, matriz_variavel);
 	
 	exibirMatriz(matriz_variavel);
+	
+	criar_matriz_hilbert(matriz_hilbert);
+	multMatriz(matriz_hilbert, matriz_variavel, solucao_encontrada);
+	exibirMatriz(solucao_encontrada);
+
 }
 
 void somaVetores(int vetor1[], int vetor2[], int ORDEMVetores) // vai exibir um vetor resultante
@@ -103,6 +101,31 @@ void multVetor(int vetor1[], int vetor2[], int ORDEMVetores) // vai retornar um 
 	printf("Valor do Produto interno: %i ", produto_interno);
 }
 
+void multMatriz(float matriz1[ORDEM][ORDEM], float matriz2[ORDEM][1], float matriz3[ORDEM][1])
+{
+	int i, j, k; 
+	
+	// 1. Verificação da regra matemática estrita
+    /*if (colunas1 != linhas2) 
+	{
+        printf("Erro Matemático: Impossível multiplicar. Colunas de A (%d) != Linhas de B (%d).\n", colunasA, linhasB);
+        return false; // Aborta a função e retorna falha
+    }*/
+
+    for (i = 0; i < ORDEM; i++) 
+	{
+        for (j = 0; j < 1; j++) 
+		{
+            matriz3[i][j] = 0;
+            
+            for ( k = 0; k < ORDEM; k++) 
+			{
+                matriz3[i][j] = matriz3[i][j] + matriz1[i][k] * matriz2[k][j];
+            }
+        }
+    }
+}
+
 void exibirVetor (int vetor[], int ORDEMVetor)
 {
 	int i;
@@ -117,7 +140,22 @@ void exibirVetor (int vetor[], int ORDEMVetor)
 	printf ("\n\n");
 }
 
-void criar_matriz_solucao (int matriz_solucao[ORDEM][1])
+void criar_matriz_hilbert (float matriz[ORDEM][ORDEM])
+{
+	int i, j;
+	float soma;
+	
+	for (i=0;i<ORDEM;i++)
+	{
+		for (j=0;j<ORDEM;j++)
+		{
+			soma = (i + 1) + (j + 1) - 1;
+			matriz[i][j] = 1 / soma;
+		}		
+	}
+}
+
+void criar_matriz_solucao (float matriz_solucao[ORDEM][1])
 {
 	int i, j;
 			
@@ -130,7 +168,7 @@ void criar_matriz_solucao (int matriz_solucao[ORDEM][1])
 	}
 }
 
-void exibirMatriz (int matriz[ORDEM][1])
+void exibirMatriz (float matriz[ORDEM][1])
 {
 	int i, j;
 	
@@ -142,7 +180,7 @@ void exibirMatriz (int matriz[ORDEM][1])
 		//varrendo as colunas
 		for (j=0;j<1;j++)
 		{
-			printf ("%i ", matriz[i][j]);
+			printf ("%.2f ", matriz[i][j]);
 		}
 		
 		printf ("\n");
@@ -151,26 +189,16 @@ void exibirMatriz (int matriz[ORDEM][1])
 	printf ("\n\n");
 }
 
-void eliminacao (int ordem, int matriz_hilbert[ORDEM][ORDEM], int matriz_solucao[ORDEM][1])
+void eliminacao (int ordem, float matriz_hilbert[ORDEM][ORDEM], float matriz_solucao[ORDEM][1])
 {
-	int i, j, k, m;
-	int negativo;
+	int i, j, k;
+	float m;
 	
 	for (k=0; k<ordem; k++)
 	{
 		for(i=k+1; i<ordem; i++)
-		{
-			//negativo = matriz_hilbert[i][k] * -1;
-			//m = negativo / matriz_hilbert[k][k];
-			
-			if (matriz_hilbert[k][k] == 0)
-			{
-				m = 0;
-			}
-			else
-			{
-				m = matriz_hilbert[i][k] / matriz_hilbert[k][k];
-			}			
+		{		
+			m = matriz_hilbert[i][k] / matriz_hilbert[k][k];			
 			
 			for (j=k+1; j<ordem; j++)
 			{
@@ -182,21 +210,13 @@ void eliminacao (int ordem, int matriz_hilbert[ORDEM][ORDEM], int matriz_solucao
 	}
 }
 
-void substituicao_retroativa (int ordem, int matriz_hilbert[ORDEM][ORDEM], int matriz_solucao[ORDEM][1], int matriz_variavel[ORDEM][1])
+void substituicao_retroativa (int ordem, float matriz_hilbert[ORDEM][ORDEM], float matriz_solucao[ORDEM][1], float matriz_variavel[ORDEM][1])
 {
 	int i, j;
-	int soma;
-	ordem = ordem - 1;
+	float soma;
 	
-	if(matriz_hilbert[ordem][ordem] == 0)
-	{
-		matriz_variavel[ordem][0] = 0;
-	}
-	else
-	{
-		matriz_variavel[ordem][0] = matriz_solucao[ordem][0] / matriz_hilbert[ordem][ordem];
-	}
-	
+	ordem = ordem - 1; // apenas para tradução em linguagem C.
+	matriz_variavel[ordem][0] = matriz_solucao[ordem][0] / matriz_hilbert[ordem][ordem];
 	
 	for (i=ordem-1; i>=0; i--)
 	{
@@ -207,13 +227,6 @@ void substituicao_retroativa (int ordem, int matriz_hilbert[ORDEM][ORDEM], int m
 			soma = (matriz_hilbert[i][j] * matriz_variavel[j][0]) + soma;
 		}
 		
-		if(matriz_hilbert[i][i] == 0)
-		{
-			matriz_variavel[i][0] = 0;
-		}
-		else
-		{
-			matriz_variavel[i][0] = (matriz_solucao[i][0] - soma) / matriz_hilbert[i][i];
-		}
+		matriz_variavel[i][0] = (matriz_solucao[i][0] - soma) / matriz_hilbert[i][i];
 	}
 }
