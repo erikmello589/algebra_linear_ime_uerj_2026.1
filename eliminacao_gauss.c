@@ -40,15 +40,20 @@ void main()
 	exibirMatriz(ORDEM, ORDEM+1, matriz_aumentada);	
 	
 	//Realizando a Eliminação de Gauss COM o pivotação pacial.
-	gauss_pivot_parcial(ORDEM, matriz_aumentada, matriz_variavel);
-	
+	//gauss_pivot_parcial(ORDEM, matriz_aumentada, matriz_variavel);
+	eliminacao(ORDEM, matriz_hilbert, matriz_solucao);
+	substituicao_retroativa(ORDEM, matriz_hilbert, matriz_solucao, matriz_variavel);
+		
 	//exibe a matriz das variáveis x[i]
 	exibirMatriz(ORDEM, 1, matriz_variavel);
 	
-	//Testando a solução encontrada através da Eliminação de Gaus COM o pivotação pacial.
+	//Testando a solução encontrada através da Eliminação de Gaus SEM o pivotação pacial.
 	
 	//refaz a matriz de Hilbert na forma original
 	criar_matriz_hilbert(matriz_hilbert);
+	
+	//refaz a matriz solucao na forma original
+	criar_matriz_solucao(matriz_solucao);
 	
 	//Realiza a multiplicação A*x para encontrar o b aproximado da nossa solução
 	multMatriz(matriz_hilbert, matriz_variavel, solucao_encontrada);
@@ -57,9 +62,6 @@ void main()
 	exibirMatriz(ORDEM, 1, solucao_encontrada);
 	
 	calcula_erro(matriz_solucao, solucao_encontrada, ORDEM);
-	
-	
-
 }
 
 void multMatriz(double matriz1[ORDEM][ORDEM], double matriz2[ORDEM][1], double matriz3[ORDEM][1])
@@ -149,6 +151,48 @@ void exibirMatriz(int linhas, int colunas, double matriz[linhas][colunas])
 	printf("\n\n");
 }
 
+void eliminacao (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1])
+{
+	int i, j, k;
+	double m;
+	
+	for (k=0; k<ordem; k++)
+	{
+		for(i=k+1; i<ordem; i++)
+		{		
+			m = matriz_hilbert[i][k] / matriz_hilbert[k][k];			
+			
+			for (j=k+1; j<ordem; j++)
+			{
+				matriz_hilbert[i][j] = matriz_hilbert[i][j] - (m * matriz_hilbert[k][j]);
+			}
+			
+			matriz_solucao[i][0] = matriz_solucao[i][0] - (m * matriz_solucao[k][0]);
+		}
+	}
+}
+
+void substituicao_retroativa (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1], double matriz_variavel[ORDEM][1])
+{
+	int i, j;
+	double soma;
+	
+	ordem = ordem - 1; // apenas para tradução em linguagem C.
+	matriz_variavel[ordem][0] = matriz_solucao[ordem][0] / matriz_hilbert[ordem][ordem];
+	
+	for (i=ordem-1; i>=0; i--)
+	{
+		soma = 0;
+		
+		for (j=i+1; j<=ordem; j++)
+		{
+			soma = (matriz_hilbert[i][j] * matriz_variavel[j][0]) + soma;
+		}
+		
+		matriz_variavel[i][0] = (matriz_solucao[i][0] - soma) / matriz_hilbert[i][i];
+	}
+}
+
 void gauss_pivot_parcial (int ordem, double matriz_aumentada[ORDEM][ORDEM+1], double matriz_variavel[ORDEM][1])
 {	//Aplica o método da Eliminação Gaussiana. Esse código já inclui os processos de pivotação, de Eliminação e de Substituição Retroativa.
 	////algorítmo retirado de Marcone Jamilson Freitas Souza, Departamento de Computação, Instituto de Ciências Exatas e Biológicas, Universidade Federal de Ouro Preto, 35400-000 Ouro Preto, MG, Brasil. Homepage: http://www.decom.ufop.br/prof/marcone
@@ -212,17 +256,26 @@ void gauss_pivot_parcial (int ordem, double matriz_aumentada[ORDEM][ORDEM+1], do
 
 void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORDEM][1], int ordem)
 {
-	double soma_quadrados = 0;
-	double erro_local;
-	int i;
-	for (i = 0; i < ordem; i++) {
-		
-		double erro_local = solucao_encontrada[i][0] - matriz_solucao[i][0];
-		soma_quadrados = soma_quadrados + erro_local * erro_local;
-	}
 	double sqm;
-	sqm = soma_quadrados / (double)ordem;
-	printf("Erro encontrado: %.16f \n", sqm);
+	double somatorio = 0;
+	double subtracao;
+	double quadrado;
+	double fracao = 1.0 / ordem;
+	int i, j;
+	
+	for (i = 0; i < ordem; i++)
+	{
+		for (j = 0; j < 1; j++)
+		{
+				subtracao = matriz_solucao[i][j] - solucao_encontrada[i][j];
+				quadrado = subtracao * subtracao;
+				somatorio = somatorio + quadrado;
+		}
+	}
+	
+	sqm = fracao * somatorio;
+	
+	printf("Erro calculado: %e", sqm);
     
 }
 
