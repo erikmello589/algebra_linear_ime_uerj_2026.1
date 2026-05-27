@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <locale.h>
-#include <time.h> //Biblioteca para medir o tempo com a função clock
 
 //declaração da constante que determina a dimensão das matrizes.
 #define ORDEM 5
@@ -8,15 +7,17 @@
 //protótipo das funções (para que a main fique por cima).
 void exibirMatriz(int linhas, int colunas, double matriz[linhas][colunas]);
 void multMatriz(double matriz1[ORDEM][ORDEM], double matriz2[ORDEM][1], double matriz3[ORDEM][1]);
-
 void criar_matriz_solucao (double matriz_solucao[ORDEM][1]);
 void criar_matriz_hilbert (double matriz[ORDEM][ORDEM]);
 void criar_matriz_aumentada (double matriz1[ORDEM][ORDEM], double matriz2[ORDEM][1], double matriz3[ORDEM][ORDEM+1]);
+void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORDEM][1], int ordem);
 
+
+//Funções para implementar a Eliminação de Gauss SEM o pivoteamento parcial
 void eliminacao (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1]);
 void substituicao_retroativa (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1], double matriz_variavel[ORDEM][1]);
+//Função para implementar a Eliminação de Gauss COM o pivoteamento pacial (Pivoteamento + Eliminação + Substituição)
 void gauss_pivot_parcial (int ordem, double matriz_aumentada[ORDEM][ORDEM+1], double matriz_variavel[ORDEM][1]);
-void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORDEM][1], int ordem);
 
 void main()
 {
