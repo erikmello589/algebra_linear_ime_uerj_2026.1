@@ -12,16 +12,19 @@ void criar_matriz_hilbert (double matriz[ORDEM][ORDEM]);
 void criar_matriz_aumentada (double matriz1[ORDEM][ORDEM], double matriz2[ORDEM][1], double matriz3[ORDEM][ORDEM+1]);
 void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORDEM][1], int ordem);
 
+void gauss_jordan (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1],  double matriz_aumentada[ORDEM][ORDEM+1]);
 
 //Funções para implementar a Eliminação de Gauss SEM o pivoteamento parcial
 void eliminacao (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1]);
 void substituicao_retroativa (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1], double matriz_variavel[ORDEM][1]);
-//Função para implementar a Eliminação de Gauss COM o pivoteamento pacial (Pivoteamento + Eliminação + Substituição)
-void gauss_pivot_parcial (int ordem, double matriz_aumentada[ORDEM][ORDEM+1], double matriz_variavel[ORDEM][1]);
+
+
 
 void main()
 {
 	setlocale(LC_ALL,"portuguese");
+	
+	int i;
 	
 	double matriz_solucao[ORDEM][1];
 	double matriz_hilbert[ORDEM][ORDEM];
@@ -35,21 +38,18 @@ void main()
 	//Contrói a matriz hilbert de ordem ORDEMxORDEM
 	criar_matriz_hilbert(matriz_hilbert);
 	
-	//Contrói a matriz aumentada [A|b]
-	criar_matriz_aumentada(matriz_hilbert, matriz_solucao, matriz_aumentada);
+	//Realizando o metodo Gauss-Jordan.
+	gauss_jordan(ORDEM, matriz_hilbert, matriz_solucao, matriz_aumentada);
 		
-	exibirMatriz(ORDEM, ORDEM+1, matriz_aumentada);	
-	
-	//Realizando a Eliminação de Gauss COM o pivotação pacial.
-	//gauss_pivot_parcial(ORDEM, matriz_aumentada, matriz_variavel);
-	eliminacao(ORDEM, matriz_hilbert, matriz_solucao);
-	substituicao_retroativa(ORDEM, matriz_hilbert, matriz_solucao, matriz_variavel);
+	//Implentar forma de matriz_variavel = ultima coluna de matriz_aumentada
+	for (i=0; i<ORDEM; i++)
+	{
+		matriz_variavel[i][0] = matriz_aumentada[i][ORDEM];
+	}
 		
 	//exibe a matriz das variáveis x[i]
 	exibirMatriz(ORDEM, 1, matriz_variavel);
-	
-	//Testando a solução encontrada através da Eliminação de Gaus SEM o pivotação pacial.
-	
+		
 	//refaz a matriz de Hilbert na forma original
 	criar_matriz_hilbert(matriz_hilbert);
 	
@@ -152,109 +152,6 @@ void exibirMatriz(int linhas, int colunas, double matriz[linhas][colunas])
 	printf("\n\n");
 }
 
-void eliminacao (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1])
-{
-	int i, j, k;
-	double m;
-	
-	for (k=0; k<ordem; k++)
-	{
-		for(i=k+1; i<ordem; i++)
-		{		
-			m = matriz_hilbert[i][k] / matriz_hilbert[k][k];			
-			
-			for (j=k; j<ordem; j++)
-			{
-				matriz_hilbert[i][j] = matriz_hilbert[i][j] - (m * matriz_hilbert[k][j]);
-			}
-			
-			matriz_solucao[i][0] = matriz_solucao[i][0] - (m * matriz_solucao[k][0]);
-		}
-	}
-}
-
-void substituicao_retroativa (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1], double matriz_variavel[ORDEM][1])
-{
-	int i, j;
-	double soma;
-	
-	ordem = ordem - 1; // apenas para tradução em linguagem C.
-	matriz_variavel[ordem][0] = matriz_solucao[ordem][0] / matriz_hilbert[ordem][ordem];
-	
-	for (i=ordem-1; i>=0; i--)
-	{
-		soma = 0;
-		
-		for (j=i+1; j<=ordem; j++)
-		{
-			soma = (matriz_hilbert[i][j] * matriz_variavel[j][0]) + soma;
-		}
-		
-		matriz_variavel[i][0] = (matriz_solucao[i][0] - soma) / matriz_hilbert[i][i];
-	}
-}
-
-void gauss_pivot_parcial (int ordem, double matriz_aumentada[ORDEM][ORDEM+1], double matriz_variavel[ORDEM][1])
-{	//Aplica o método da Eliminação Gaussiana. Esse código já inclui os processos de pivotação, de Eliminação e de Substituição Retroativa.
-	////algorítmo retirado de Marcone Jamilson Freitas Souza, Departamento de Computação, Instituto de Ciências Exatas e Biológicas, Universidade Federal de Ouro Preto, 35400-000 Ouro Preto, MG, Brasil. Homepage: http://www.decom.ufop.br/prof/marcone
-	int i, j, k;
-	int posicao_maior_elemento;
-	double valor_maior_elemento;
-	double aux;
-	double matriz_multiplicadores[ORDEM][ORDEM+1];
-	double soma;
-	
-	
-	for (k=0;k<ordem;k++)
-	{
-		valor_maior_elemento = matriz_aumentada[k][k];
-		posicao_maior_elemento = k; 
-		
-		//Vai procurar o maior elemento da coluna k e, caso ele não seja o elemento a[k][k], realizará a permutação da linha i com a linha k. Depois, vai zerar os elementos abaixo do pivô e continuar para a próxima coluna.
-		for (i=k; i<ordem; i++)
-		{ 	
-			if (matriz_aumentada[i][k] > valor_maior_elemento)
-			{
-				valor_maior_elemento = matriz_aumentada[i][k];
-				posicao_maior_elemento = i; 
-			}
-		}
-		
-		for (j=k; j<=ordem; j++)
-		{
-			aux = matriz_aumentada[k][j];
-			matriz_aumentada[k][j] = matriz_aumentada[posicao_maior_elemento][j];
-			matriz_aumentada[posicao_maior_elemento][j] = aux;
-		}
-		
-		for (i=k+1; i<ordem; i++)
-		{
-			matriz_multiplicadores[i][k] = matriz_aumentada[i][k] / matriz_aumentada[k][k];
-			
-			for (j=k+1; j<=ordem; j++)
-			{
-				matriz_aumentada[i][j] = matriz_aumentada[i][j] - (matriz_multiplicadores[i][k] * matriz_aumentada[k][j]);
-			}
-		}
-	}
-	
-	
-	ordem = ordem - 1;
-	matriz_variavel[ordem][0] = matriz_aumentada[ordem][ordem+1] / matriz_aumentada[ordem][ordem];
-	
-	for (i=ordem-1; i>=0; i--)
-	{	//Aqui está o processo de substituição retroativa
-		soma = 0;
-		
-		for (j=i+1; j<=ordem; j++)
-		{
-			soma = soma + (matriz_aumentada[i][j] * matriz_variavel[j][0]);
-		}
-		
-		matriz_variavel[i][0] = (matriz_aumentada[i][ordem+1] - soma) / matriz_aumentada[i][i];
-	}	
-}
-
 void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORDEM][1], int ordem)
 {
 	double sqm;
@@ -280,3 +177,52 @@ void calcula_erro(double matriz_solucao[ORDEM][1], double solucao_encontrada[ORD
     
 }
 
+void eliminacao (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1])
+{
+	int i, j, k;
+	double m;
+	
+	for (k=0; k<ordem; k++)
+	{
+		for(i=k+1; i<ordem; i++)
+		{		
+			m = matriz_hilbert[i][k] / matriz_hilbert[k][k];			
+			
+			for (j=k; j<ordem; j++)
+			{
+				matriz_hilbert[i][j] = matriz_hilbert[i][j] - (m * matriz_hilbert[k][j]);
+			}
+			
+			matriz_solucao[i][0] = matriz_solucao[i][0] - (m * matriz_solucao[k][0]);
+		}
+	}
+}
+
+void gauss_jordan (int ordem, double matriz_hilbert[ORDEM][ORDEM], double matriz_solucao[ORDEM][1],  double matriz_aumentada[ORDEM][ORDEM+1])
+{
+	int i, j, k;
+	double pivo;
+	double multiplicacao;
+	
+	eliminacao(ordem, matriz_hilbert, matriz_solucao);	
+	criar_matriz_aumentada(matriz_hilbert, matriz_solucao, matriz_aumentada);
+	
+	for (i=ordem-1; i>=0; i--)
+	{
+		for (j=i-1; j>=0; j--)
+		{
+			pivo = matriz_aumentada[j][i] / matriz_aumentada[i][i];
+
+			for (k=ordem; k>=i; k--)
+			{
+				multiplicacao = pivo * matriz_aumentada[i][k];
+				matriz_aumentada[j][k] = matriz_aumentada[j][k] - multiplicacao;
+			}
+		}
+		
+		for (j=ordem; j>=i; j--)
+		{
+			matriz_aumentada[i][j] = matriz_aumentada[i][j] / matriz_aumentada[i][i];
+		}
+	}
+}
